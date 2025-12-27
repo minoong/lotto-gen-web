@@ -3,17 +3,30 @@ import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { NumberBall } from './NumberBall'
 
-// Generate random shooting stars
-const generateShootingStars = () => {
-  return Array.from({ length: 8 }, (_, i) => ({
+// Generate random comets (3-5 comets) with fire colors
+const generateComets = () => {
+  const count = 3 + Math.floor(Math.random() * 3) // 3 to 5
+  return Array.from({ length: count }, (_, i) => ({
     id: i,
-    startX: -100 + Math.random() * 30,
-    startY: Math.random() * 60,
-    delay: Math.random() * 1.5,
-    duration: 0.8 + Math.random() * 0.6,
-    size: 1 + Math.random() * 2,
-    tailLength: 80 + Math.random() * 120,
+    startY: 5 + Math.random() * 50, // Random Y position (top 5-55%)
+    delay: i * 0.25 + Math.random() * 0.15, // Staggered delay
+    duration: 1.0 + Math.random() * 0.4, // 1.0-1.4s duration
+    initialScale: 0.4 + Math.random() * 0.3, // Start scale 0.4-0.7
+    finalScale: 1.8 + Math.random() * 1.2, // End scale 1.8-3.0 (gets bigger)
+    tailLength: 180 + Math.random() * 120, // Tail 180-300px
   }))
+}
+
+// Calculate tail angle based on movement trajectory
+const calculateTailAngle = () => {
+  // Movement: from (-100, startY) to (innerWidth + 200, startY + innerHeight * 0.4)
+  // deltaX ≈ innerWidth + 300, deltaY ≈ innerHeight * 0.4
+  // Using approximate values for SSR compatibility
+  const deltaX = 1500 // approximate screen width + margins
+  const deltaY = 400  // approximate vertical movement
+  const angleRad = Math.atan2(deltaY, deltaX)
+  const angleDeg = angleRad * (180 / Math.PI)
+  return angleDeg // Returns angle in degrees (roughly 15-20°)
 }
 
 const FLOATING_BALLS = [
@@ -32,8 +45,8 @@ export function HeroSection() {
   const subtitleRef = useRef<HTMLParagraphElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const ballRefs = useRef<(HTMLDivElement | null)[]>([])
-  const shootingStarsRef = useRef<HTMLDivElement>(null)
-  const [shootingStars] = useState(generateShootingStars)
+  const cometsRef = useRef<HTMLDivElement>(null)
+  const [comets] = useState(generateComets)
 
   // Parallax scroll effect
   useEffect(() => {
@@ -73,31 +86,40 @@ export function HeroSection() {
   useGSAP(() => {
     const balls = ballRefs.current.filter(Boolean)
 
-    // Shooting stars animation (one-time on page load)
-    const stars = shootingStarsRef.current?.querySelectorAll('.shooting-star')
-    if (stars) {
-      stars.forEach((star, i) => {
-        const data = shootingStars[i]
-        gsap.fromTo(star,
+    // Comet animation (one-time on page load)
+    const cometElements = cometsRef.current?.querySelectorAll('.comet')
+    if (cometElements) {
+      cometElements.forEach((comet, i) => {
+        const data = comets[i]
+
+        // Animate comet from left to right with perspective scale effect
+        gsap.fromTo(comet,
           {
-            x: '0%',
-            y: '0%',
+            x: -100,
+            y: 0,
+            scale: data.initialScale,
             opacity: 0,
-            scale: 0.5,
           },
           {
-            x: '250vw',
-            y: '150vh',
-            opacity: 0,
-            scale: 1,
+            x: window.innerWidth + 200,
+            y: window.innerHeight * 0.4,
+            scale: data.finalScale,
             duration: data.duration,
             delay: data.delay,
-            ease: 'power1.in',
+            ease: 'none',
             onStart: () => {
-              gsap.to(star, { opacity: 1, duration: 0.1 })
+              gsap.to(comet, { opacity: 1, duration: 0.1 })
+            },
+            onUpdate: function() {
+              // Fade out in the last 20% of animation
+              const progress = this.progress()
+              if (progress > 0.8) {
+                const fadeProgress = (progress - 0.8) / 0.2
+                gsap.set(comet, { opacity: 1 - fadeProgress })
+              }
             },
             onComplete: () => {
-              gsap.set(star, { display: 'none' })
+              gsap.set(comet, { display: 'none' })
             }
           }
         )
@@ -203,50 +225,140 @@ export function HeroSection() {
         <div className="stars absolute inset-0" />
       </div>
 
-      {/* Shooting stars (one-time animation) */}
-      <div ref={shootingStarsRef} className="absolute inset-0 overflow-hidden pointer-events-none">
-        {shootingStars.map((star) => (
-          <div
-            key={star.id}
-            className="shooting-star absolute"
-            style={{
-              left: `${star.startX}%`,
-              top: `${star.startY}%`,
-              opacity: 0,
-            }}
-          >
-            {/* Star head */}
+      {/* Comets (one-time animation on page load) - z-index 50 to be on top */}
+      <div
+        ref={cometsRef}
+        className="absolute inset-0 pointer-events-none overflow-visible"
+        style={{ zIndex: 50, perspective: '1000px' }}
+      >
+        {comets.map((comet) => {
+          // Tail angle based on movement trajectory (pointing backward)
+          const tailAngle = calculateTailAngle()
+
+          return (
             <div
-              className="absolute rounded-full bg-white"
+              key={comet.id}
+              className="comet absolute left-0"
               style={{
-                width: `${star.size * 3}px`,
-                height: `${star.size * 3}px`,
-                boxShadow: `
-                  0 0 ${star.size * 4}px ${star.size * 2}px rgba(255, 255, 255, 0.9),
-                  0 0 ${star.size * 8}px ${star.size * 4}px rgba(167, 139, 250, 0.6),
-                  0 0 ${star.size * 12}px ${star.size * 6}px rgba(139, 92, 246, 0.4)
-                `,
+                top: `${comet.startY}%`,
+                opacity: 0,
+                transformStyle: 'preserve-3d',
               }}
-            />
-            {/* Star tail */}
-            <div
-              className="absolute top-1/2 right-full -translate-y-1/2"
-              style={{
-                width: `${star.tailLength}px`,
-                height: `${star.size * 1.5}px`,
-                background: `linear-gradient(90deg,
-                  transparent 0%,
-                  rgba(167, 139, 250, 0.1) 20%,
-                  rgba(139, 92, 246, 0.4) 60%,
-                  rgba(255, 255, 255, 0.8) 100%
-                )`,
-                filter: 'blur(1px)',
-                transform: 'translateY(-50%) rotate(-35deg)',
-                transformOrigin: 'right center',
-              }}
-            />
-          </div>
-        ))}
+            >
+              {/* Tail container - positioned behind the head, rotated based on trajectory */}
+              <div
+                className="absolute"
+                style={{
+                  right: '100%',
+                  top: '50%',
+                  transform: `translateY(-50%) rotate(${tailAngle}deg)`,
+                  transformOrigin: 'right center',
+                }}
+              >
+                {/* Main tail (fire gradient) - starts bright, fades to transparent */}
+                <div
+                  style={{
+                    width: `${comet.tailLength}px`,
+                    height: '5px',
+                    background: `linear-gradient(270deg,
+                      #fff 0%,
+                      rgba(255, 255, 200, 0.95) 3%,
+                      rgba(255, 220, 100, 0.85) 8%,
+                      rgba(255, 180, 50, 0.7) 15%,
+                      rgba(255, 140, 0, 0.5) 30%,
+                      rgba(255, 80, 0, 0.35) 50%,
+                      rgba(200, 40, 0, 0.2) 70%,
+                      rgba(139, 0, 0, 0.08) 88%,
+                      transparent 100%
+                    )`,
+                    clipPath: 'polygon(100% 20%, 0% 50%, 0% 50%, 100% 80%)',
+                    filter: 'blur(0.5px)',
+                  }}
+                />
+                {/* Outer glow tail - gaussian-like falloff */}
+                <div
+                  className="absolute top-1/2 right-0"
+                  style={{
+                    width: `${comet.tailLength * 0.85}px`,
+                    height: '18px',
+                    background: `linear-gradient(270deg,
+                      rgba(255, 220, 150, 0.7) 0%,
+                      rgba(255, 160, 50, 0.45) 15%,
+                      rgba(255, 100, 0, 0.3) 35%,
+                      rgba(220, 50, 0, 0.15) 55%,
+                      rgba(150, 20, 0, 0.06) 75%,
+                      transparent 100%
+                    )`,
+                    transform: 'translateY(-50%)',
+                    filter: 'blur(5px)',
+                    opacity: 0.9,
+                  }}
+                />
+                {/* Inner bright core streak */}
+                <div
+                  className="absolute top-1/2 right-0"
+                  style={{
+                    width: `${comet.tailLength * 0.35}px`,
+                    height: '2px',
+                    background: `linear-gradient(270deg,
+                      #fff 0%,
+                      rgba(255, 255, 230, 0.9) 25%,
+                      rgba(255, 230, 180, 0.6) 60%,
+                      transparent 100%
+                    )`,
+                    transform: 'translateY(-50%)',
+                    filter: 'blur(0.3px)',
+                  }}
+                />
+                {/* Particle sparks - offset for depth */}
+                <div
+                  className="absolute right-0"
+                  style={{
+                    top: '-4px',
+                    width: `${comet.tailLength * 0.25}px`,
+                    height: '1px',
+                    background: `linear-gradient(270deg,
+                      rgba(255, 255, 220, 0.6) 0%,
+                      rgba(255, 200, 100, 0.25) 50%,
+                      transparent 100%
+                    )`,
+                    filter: 'blur(0.5px)',
+                  }}
+                />
+                <div
+                  className="absolute right-0"
+                  style={{
+                    bottom: '-4px',
+                    width: `${comet.tailLength * 0.2}px`,
+                    height: '1px',
+                    background: `linear-gradient(270deg,
+                      rgba(255, 255, 220, 0.5) 0%,
+                      rgba(255, 180, 80, 0.2) 60%,
+                      transparent 100%
+                    )`,
+                    filter: 'blur(0.5px)',
+                  }}
+                />
+              </div>
+              {/* Comet head (bright fiery core) - in front */}
+              <div
+                className="relative rounded-full"
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  background: 'radial-gradient(circle, #fff 0%, #fffacd 25%, #ffa500 55%, #ff4500 85%, transparent 100%)',
+                  boxShadow: `
+                    0 0 6px 3px rgba(255, 255, 255, 1),
+                    0 0 12px 6px rgba(255, 220, 100, 0.9),
+                    0 0 25px 12px rgba(255, 160, 50, 0.7),
+                    0 0 40px 20px rgba(255, 100, 0, 0.5),
+                    0 0 60px 30px rgba(255, 50, 0, 0.3)
+                  `,
+                }}
+              />
+            </div>
+          )
+        })}
       </div>
 
       {/* Floating meteor balls */}
