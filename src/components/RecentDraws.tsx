@@ -46,14 +46,24 @@ export function RecentDraws({ data }: RecentDrawsProps) {
   return (
     <AnimatedCard delay={0.6}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-2">
-          <CollapsibleTrigger className="w-full">
-            <CardTitle className="flex items-center gap-2 text-lg text-left">
-              <History className="w-5 h-5 text-primary" />
-              <span>최근 당첨번호</span>
+        <CollapsibleTrigger className="w-full">
+          <CardHeader className="py-4 cursor-pointer hover:bg-secondary/30 transition-colors rounded-t-xl">
+            <CardTitle className="flex items-center justify-between text-lg">
+              <div className="flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                <span>최근 당첨번호</span>
+              </div>
+              <svg
+                className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </CardTitle>
-          </CollapsibleTrigger>
-        </CardHeader>
+          </CardHeader>
+        </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent ref={contentRef} className="space-y-2 pt-2">
             {recentDraws.map((draw) => (

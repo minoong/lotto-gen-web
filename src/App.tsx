@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
-import { Header } from '@/components/Header'
+import { HeroSection } from '@/components/HeroSection'
 import { GameSelector } from '@/components/GameSelector'
 import { GenerateButton } from '@/components/GenerateButton'
 import { ResultList } from '@/components/ResultList'
@@ -63,8 +63,8 @@ function LottoApp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/10 overflow-x-hidden">
+      <HeroSection />
       <div className="max-w-lg mx-auto px-4 pb-12">
-        <Header />
         <div className="space-y-6">
           <GameSelector
             gameCount={gameCount}

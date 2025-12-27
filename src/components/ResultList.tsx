@@ -64,7 +64,7 @@ export function ResultList({ games }: ResultListProps) {
 
   return (
     <div ref={containerRef} style={{ opacity: 0 }}>
-      <AnimatedCard className="border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5">
+      <AnimatedCard className="border-2 border-primary/20 bg-linear-to-br from-white to-primary/5">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">

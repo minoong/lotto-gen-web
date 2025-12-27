@@ -81,11 +81,11 @@ export function Header() {
         ref={orbsRef}
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
       >
-        <div className="orb absolute w-32 h-32 rounded-full bg-gradient-to-br from-yellow-400/30 to-orange-500/20 blur-3xl -top-8 -left-8" />
-        <div className="orb absolute w-40 h-40 rounded-full bg-gradient-to-br from-blue-400/30 to-cyan-500/20 blur-3xl top-4 right-0" />
-        <div className="orb absolute w-28 h-28 rounded-full bg-gradient-to-br from-red-400/30 to-pink-500/20 blur-3xl bottom-4 left-1/4" />
-        <div className="orb absolute w-36 h-36 rounded-full bg-gradient-to-br from-green-400/30 to-emerald-500/20 blur-3xl -bottom-8 right-1/4" />
-        <div className="orb absolute w-24 h-24 rounded-full bg-gradient-to-br from-purple-400/40 to-indigo-500/30 blur-2xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <div className="orb absolute w-32 h-32 rounded-full bg-linear-to-br from-yellow-400/30 to-orange-500/20 blur-3xl -top-8 -left-8" />
+        <div className="orb absolute w-40 h-40 rounded-full bg-linear-to-br from-blue-400/30 to-cyan-500/20 blur-3xl top-4 right-0" />
+        <div className="orb absolute w-28 h-28 rounded-full bg-linear-to-br from-red-400/30 to-pink-500/20 blur-3xl bottom-4 left-1/4" />
+        <div className="orb absolute w-36 h-36 rounded-full bg-linear-to-br from-green-400/30 to-emerald-500/20 blur-3xl -bottom-8 right-1/4" />
+        <div className="orb absolute w-24 h-24 rounded-full bg-linear-to-br from-purple-400/40 to-indigo-500/30 blur-2xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       </div>
 
       {/* Sparkles */}
@@ -119,7 +119,7 @@ export function Header() {
         >
           Lotto Genius
         </h1>
-        <p ref={subtitleRef} className="mt-3 text-muted-foreground font-medium">
+        <p ref={subtitleRef} className="mt-3 text-red-500 font-medium">
           AI 기반 로또 번호 추천 서비스
         </p>
       </div>
